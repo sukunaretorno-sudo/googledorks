@@ -1,0 +1,429 @@
+<!doctype html>
+<html lang="pt-BR" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="dark light">
+<meta name="description" content="DorkLab: construtor independente de buscas avançadas no Google com filtros de arquivos, domínios, conteúdo e período.">
+<title>DorkLab — Search Intelligence Console</title>
+<style>
+  :root{
+    --bg:#0b0d12;--surface:#13161e;--surface2:#191d27;--inset:#0e1119;
+    --ink:#f3f5fa;--muted:#969eaf;--border:#2a2f3b;--line:#292e39;
+    --blue:#8ab4f8;--green:#72e2ad;--red:#f28b82;--yellow:#fdd663;
+    --shadow:0 18px 54px #0004;--focus:#90b9ff;--button:#8ab4f8;
+  }
+  html[data-theme="light"]{
+    --bg:#f8fafd;--surface:#fff;--surface2:#f5f7fb;--inset:#f6f8fc;
+    --ink:#202124;--muted:#687183;--border:#dfe3eb;--line:#e6e9ef;
+    --blue:#1967d2;--green:#138a5b;--red:#d93025;--yellow:#bd7200;
+    --shadow:0 16px 48px #20212412;--focus:#1a73e8;--button:#1a73e8;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.5 Arial,Roboto,"Segoe UI",sans-serif;min-height:100vh;transition:background .2s,color .2s}
+  body:before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;background:radial-gradient(ellipse 50% 34% at 50% -8%,#21529d22,transparent 78%),linear-gradient(#ffffff04 1px,transparent 1px),linear-gradient(90deg,#ffffff04 1px,transparent 1px);background-size:auto,44px 44px,44px 44px;mask-image:linear-gradient(to bottom,#0007,transparent 70%)}
+  html[data-theme=light] body:before{opacity:.4}
+  button,input{font:inherit}
+  button{cursor:pointer}
+  button:focus-visible,input:focus-visible,a:focus-visible,summary:focus-visible{outline:2px solid var(--focus);outline-offset:3px}
+  a{color:inherit;text-decoration:none}
+  .wrap{width:min(1160px,calc(100% - 38px));margin:auto}
+  .site-head{height:84px;display:flex;align-items:center;justify-content:space-between;gap:20px;border-bottom:1px solid var(--line)}
+  .brand{display:flex;align-items:center;gap:12px;min-width:0}
+  .brand-mark{position:relative;width:42px;height:42px;display:grid;place-items:center;border-radius:13px;background:var(--surface);border:1px solid var(--border);flex:none}
+  .google-g{font-size:30px;line-height:1;font-weight:800;letter-spacing:-3px;padding-right:3px;background:conic-gradient(from -35deg,#4285f4 0deg 86deg,#34a853 86deg 151deg,#fbbc05 151deg 208deg,#ea4335 208deg 270deg,#4285f4 270deg);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .brand-name{display:block;font-size:19px;font-weight:700;letter-spacing:-.75px;line-height:1.15}
+  .brand-name span{color:var(--blue)}
+  .brand-detail{font:10px/1.4 Consolas,Monaco,monospace;letter-spacing:1.1px;color:var(--muted);margin-top:3px}
+  .head-right{display:flex;align-items:center;gap:12px}
+  .small-link{font-size:12px;color:var(--muted);padding:8px;transition:color .2s}
+  .small-link:hover{color:var(--ink)}
+  .version{font:11px Consolas,monospace;padding:7px 10px;border:1px solid #397556;border-radius:20px;color:var(--green);background:#2c694022;white-space:nowrap}
+  .theme-button{width:39px;height:39px;border:1px solid var(--border);background:var(--surface);border-radius:50%;display:grid;place-items:center;color:var(--ink);font-size:19px}
+  .theme-button:hover{background:var(--surface2)}
+  .hero{text-align:center;padding:53px 0 28px}
+  .eyebrow{display:inline-flex;align-items:center;gap:8px;font:11px Consolas,monospace;letter-spacing:1.4px;color:var(--muted)}
+  .live-dot{width:7px;height:7px;background:var(--green);border-radius:50%;box-shadow:0 0 0 4px #55bd8930,0 0 17px #52ecae80}
+  h1{font-size:clamp(33px,5vw,54px);line-height:1.13;letter-spacing:-2.4px;margin:17px 0 12px;font-weight:700}
+  .h1-accent{background:linear-gradient(90deg,#8ab4f8,#8edbc9);color:transparent;-webkit-background-clip:text;background-clip:text}
+  html[data-theme=light] .h1-accent{background:linear-gradient(90deg,#1967d2,#18865a);-webkit-background-clip:text;background-clip:text}
+  .hero p{color:var(--muted);font-size:15px;margin:0 auto;max-width:630px}
+  .search-section{max-width:900px;margin:31px auto 0}
+  .search-box{display:flex;align-items:center;gap:12px;min-height:66px;background:var(--surface);border:1px solid #4a5365;border-radius:34px;padding:8px 8px 8px 21px;box-shadow:0 5px 30px #0003,0 0 0 3px #8ab4f807;transition:border-color .2s,box-shadow .2s}
+  html[data-theme=light] .search-box{border-color:#dfe3eb;box-shadow:0 3px 15px #2021241a}
+  .search-box:focus-within{border-color:var(--blue);box-shadow:0 0 0 4px #8ab4f816,0 10px 35px #0003}
+  .search-icon{width:20px;height:20px;color:var(--muted);flex:none}
+  .search-box input{flex:1;min-width:0;border:0;outline:none;background:transparent;color:var(--ink);font-size:16px;line-height:1.4;height:44px}
+  .search-box input::placeholder{color:var(--muted);opacity:1}
+  .search-box input:focus-visible{outline:none}
+  kbd{border:1px solid var(--border);color:var(--muted);border-radius:5px;padding:4px 6px;font:11px Consolas,monospace;white-space:nowrap}
+  .go-btn{border:0;border-radius:26px;display:inline-flex;align-items:center;justify-content:center;gap:8px;white-space:nowrap;background:var(--button);color:#09111d;padding:14px 22px;font-weight:700;transition:filter .15s,transform .15s;min-height:49px}
+  html[data-theme=light] .go-btn{color:white}
+  .go-btn:hover{filter:brightness(1.12);transform:translateY(-1px)}
+  .go-btn svg{width:18px;height:18px}
+  .search-hint{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin:10px 18px 0;color:var(--muted);font-size:12px}
+  .search-hint .mini-green{color:var(--green)}
+  .filter-quick{display:flex;align-items:center;justify-content:center;gap:9px;flex-wrap:wrap;margin:32px 0 30px}
+  .quick-label{font:11px Consolas,monospace;letter-spacing:.7px;color:var(--muted);margin-right:6px}
+  .mode{border:1px solid var(--border);border-radius:24px;background:var(--surface);color:var(--muted);font-size:12px;padding:10px 15px;font-weight:600;display:flex;align-items:center;gap:8px}
+  .mode:hover{border-color:var(--blue);color:var(--ink)}
+  .mode[aria-pressed=true]{color:var(--blue);background:#8ab4f812;border-color:#8ab4f875}
+  .mode-dot{width:7px;height:7px;border-radius:50%;background:var(--blue)}
+  .layout{display:grid;grid-template-columns:minmax(0,1.48fr) minmax(312px,.93fr);gap:19px;align-items:start;margin-bottom:38px}
+  .panel{background:var(--surface);border:1px solid var(--border);border-radius:21px;box-shadow:var(--shadow);overflow:hidden}
+  .panel-head{padding:22px 25px 19px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;gap:12px}
+  .panel-title{display:flex;align-items:center;gap:11px}
+  .panel-icon{width:36px;height:36px;display:grid;place-items:center;border-radius:10px;background:#8ab4f813;border:1px solid #8ab4f82c;color:var(--blue);font:18px Consolas,monospace}
+  h2,h3,p{margin-top:0}
+  h2{font-size:17px;letter-spacing:-.4px;line-height:1.3;margin-bottom:4px}
+  .panel-description{font-size:12px;color:var(--muted);margin:0}
+  .counter{font:11px Consolas,monospace;color:var(--green);background:#3ca76d19;border:1px solid #369b6e33;border-radius:18px;padding:6px 9px;white-space:nowrap}
+  .panel-body{padding:23px 25px}
+  .section-label{display:flex;align-items:center;gap:10px;color:var(--muted);font:11px Consolas,monospace;letter-spacing:1.1px;text-transform:uppercase;margin:3px 0 17px}
+  .section-label::after{content:"";height:1px;background:var(--line);flex:1}
+  .section-label .index{color:var(--green)}
+  .field{margin:0 0 18px}
+  .field label,.field-label{display:block;font-size:12px;font-weight:700;margin-bottom:8px;color:var(--ink)}
+  .field .hint,.hint{display:block;color:var(--muted);font-size:11px;margin-top:7px;line-height:1.35}
+  .two-cols{display:grid;grid-template-columns:1fr 1fr;gap:15px}
+  .field input[type=text],.field input[type=date]{width:100%;height:44px;border:1px solid var(--border);border-radius:10px;padding:0 13px;background:var(--inset);color:var(--ink);min-width:0;font-size:13px;transition:border-color .15s}
+  .field input[type=text]:hover,.field input[type=date]:hover{border-color:#737f934f}
+  .field input[type=text]:focus,.field input[type=date]:focus{border-color:var(--blue);outline:2px solid #8ab4f825}
+  .field input::placeholder{color:var(--muted);opacity:.8}
+  input[type=date]{color-scheme:dark}
+  html[data-theme=light] input[type=date]{color-scheme:light}
+  .file-grid{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:5px}
+  .file-chip{display:block;position:relative}
+  .file-chip input{position:absolute;opacity:0;width:1px;height:1px}
+  .file-chip span{min-width:61px;height:36px;padding:0 12px;display:inline-flex;align-items:center;justify-content:center;border:1px solid var(--border);border-radius:9px;background:var(--inset);font:12px Consolas,monospace;color:var(--muted);transition:all .15s}
+  .file-chip input:checked+span{border-color:#4aa6f6;background:#438be523;color:var(--blue);box-shadow:inset 0 0 0 1px #438be519}
+  .file-chip input:focus-visible+span{outline:2px solid var(--blue);outline-offset:3px}
+  .file-chip span:hover{border-color:var(--blue)}
+  .controls-footer{border-top:1px solid var(--line);margin:4px -25px -23px;padding:16px 25px;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;background:var(--inset)}
+  .reset-btn{color:var(--muted);background:transparent;border:0;font-weight:600;padding:9px 8px}
+  .reset-btn:hover{color:var(--red)}
+  .small-primary{border:1px solid #8ab4f83d;background:#8ab4f81a;color:var(--blue);border-radius:9px;padding:10px 16px;font-weight:700;font-size:12px}
+  .small-primary:hover{background:#8ab4f82e}
+  .sidebar{display:grid;gap:18px;position:sticky;top:16px}
+  .terminal{background:var(--inset);border:1px solid var(--border);border-radius:14px;overflow:hidden}
+  .terminal-head{display:flex;align-items:center;gap:7px;padding:13px 15px;border-bottom:1px solid var(--line);color:var(--muted);font:10px Consolas,monospace;letter-spacing:.4px}
+  .window-circle{width:8px;height:8px;border-radius:50%;background:#ed6a5e}
+  .window-circle:nth-child(2){background:#f4bd4f}
+  .window-circle:nth-child(3){background:#61c454}
+  .terminal-head span:last-child{margin-left:auto;white-space:nowrap}
+  .terminal-main{padding:20px 17px 17px;min-height:148px}
+  .term-prefix{color:var(--green);font:11px Consolas,monospace;margin-bottom:14px}
+  #preview{min-height:72px;font:13px/1.75 Consolas,"SFMono-Regular",Monaco,monospace;white-space:pre-wrap;overflow-wrap:anywhere;word-break:break-word;color:var(--ink)}
+  #preview .op{color:var(--green)}
+  #preview .str{color:var(--yellow)}
+  #preview .or{color:var(--blue)}
+  #preview .ghost{color:var(--muted)}
+  .terminal-foot{display:flex;justify-content:space-between;gap:10px;align-items:center;border-top:1px solid var(--line);padding:11px 16px;font:10px Consolas,monospace;color:var(--muted)}
+  .indicator{color:var(--green)}
+  .action-stack{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin:17px 0 11px}
+  .action-btn{background:var(--surface2);color:var(--ink);border:1px solid var(--border);border-radius:10px;padding:11px 8px;font-size:12px;font-weight:700;display:flex;align-items:center;gap:7px;justify-content:center;min-height:42px}
+  .action-btn:hover{border-color:var(--blue);background:#8ab4f810}
+  .action-btn:disabled{opacity:.4;cursor:not-allowed}
+  .action-btn svg{width:16px;height:16px}
+  .status{font:11px/1.5 Consolas,monospace;color:var(--green);min-height:17px;margin-bottom:0}
+  .status.error{color:var(--red)}
+  .side-content{padding:20px 21px}
+  .side-title{font-size:12px;display:flex;justify-content:space-between;gap:10px;align-items:center;font-weight:700;margin-bottom:13px}
+  .side-title span{font:10px Consolas,monospace;color:var(--muted)}
+  .preset{width:100%;display:flex;align-items:center;gap:11px;text-align:left;background:transparent;color:var(--ink);border:1px solid transparent;border-radius:11px;padding:10px 9px;margin-bottom:2px}
+  .preset:hover{background:var(--surface2);border-color:var(--border)}
+  .preset-icon{width:35px;height:35px;border-radius:10px;display:grid;place-items:center;flex:none;border:1px solid var(--border);background:var(--inset);font-size:17px}
+  .preset strong{display:block;font-size:12px;margin-bottom:2px}
+  .preset small{display:block;font-size:11px;color:var(--muted);line-height:1.3}
+  details.guide{border-top:1px solid var(--line);padding:0 21px}
+  details.guide summary{padding:18px 0;cursor:pointer;list-style:none;font-weight:700;font-size:12px;display:flex;justify-content:space-between;align-items:center}
+  details.guide summary::-webkit-details-marker{display:none}
+  details.guide summary::after{content:'+';font-size:19px;color:var(--muted);font-weight:400}
+  details.guide[open] summary::after{content:'−'}
+  .op-row{display:flex;justify-content:space-between;gap:12px;border-top:1px solid var(--line);padding:10px 0;font-size:11px}
+  .op-row code{color:var(--green);font-size:11px;min-width:110px}
+  .op-row span{color:var(--muted);text-align:right}
+  .disclaimer{margin:16px 0 0;padding:13px 15px;border:1px solid var(--border);border-radius:11px;background:var(--inset);font-size:11px;color:var(--muted);line-height:1.55}
+  .disclaimer b{color:var(--ink)}
+  footer{padding:18px 0 28px;border-top:1px solid var(--line);display:flex;justify-content:space-between;gap:15px;align-items:center;flex-wrap:wrap;color:var(--muted);font-size:11px}
+  footer b{color:var(--ink)}
+  .brand-colors{display:inline-flex;gap:3px;vertical-align:middle;margin-right:7px}
+  .brand-colors i{width:7px;height:7px;border-radius:2px;background:#4285f4}
+  .brand-colors i:nth-child(2){background:#ea4335}
+  .brand-colors i:nth-child(3){background:#fbbc05}
+  .brand-colors i:nth-child(4){background:#34a853}
+  @media(max-width:900px){.layout{grid-template-columns:1fr}.sidebar{position:static;grid-template-columns:1fr 1fr;align-items:start}.sidebar .panel:last-child{grid-column:auto}}
+  @media(max-width:660px){.wrap{width:min(100% - 24px,1160px)}.site-head{height:73px}.small-link{display:none}.version{display:none}.hero{padding:43px 0 14px}.hero p{font-size:13px}h1{letter-spacing:-1.5px}.search-box{gap:8px;padding-left:14px}.search-box input{font-size:14px}.search-box kbd{display:none}.go-btn{padding:12px 14px;font-size:0;min-width:50px}.go-btn svg{width:20px;height:20px}.filter-quick{gap:7px;margin-top:26px}.quick-label{width:100%;text-align:center}.mode{padding:9px 12px}.sidebar{grid-template-columns:1fr}.two-cols{grid-template-columns:1fr;gap:0}.panel-body{padding:19px 17px}.panel-head{padding:18px 17px}.controls-footer{margin-left:-17px;margin-right:-17px;margin-bottom:-19px;padding:14px 17px}}
+  @media(prefers-reduced-motion:reduce){*,*:before,*:after{scroll-behavior:auto!important;transition:none!important}}
+
+/* Google-inspired search meets cyber research workstation */
+:root{--bg:#090c10;--surface:#11161d;--surface2:#171e26;--inset:#0c1117;--border:#283440;--line:#22303b;--green:#49f0a1;--blue:#8ab4f8;--shadow:0 12px 38px #0005}
+body:before{background:radial-gradient(ellipse 65% 34% at 50% -8%,#4285f420,transparent 80%),linear-gradient(#40f0a105 1px,transparent 1px),linear-gradient(90deg,#40f0a105 1px,transparent 1px);background-size:auto,38px 38px,38px 38px}
+.site-head{height:76px}
+.brand-mark{border-radius:50%;width:46px;height:46px;box-shadow:0 0 0 4px #8ab4f809}
+.brand-name{font-size:22px;letter-spacing:-1px}
+.brand-detail{letter-spacing:1.3px;color:var(--green)}
+.version{border-color:#2a805c;background:#0a3b2b60;color:#68f5b1;font-weight:bold}
+.hero{padding-top:68px}
+.eyebrow{color:var(--green);padding:9px 16px;border:1px solid #2b674d;border-radius:30px;background:#103b291e}
+h1{font-size:clamp(37px,5.8vw,67px);letter-spacing:-3.5px}
+.h1-accent{background:linear-gradient(100deg,#4285f4 5%,#34a853 55%,#70f7b5);-webkit-background-clip:text;background-clip:text}
+.search-section{max-width:950px}
+.search-box{border-radius:36px;background:#171c24;border:1px solid #4b596b;box-shadow:0 12px 35px #0007,0 0 0 1px #8ab4f80c}
+.search-box:focus-within{border-color:#49f0a1;box-shadow:0 0 0 4px #49f0a11b,0 15px 38px #0008}
+.go-btn{background:#8ab4f8;color:#07111f}
+.panel{border-radius:16px}
+.panel-head{background:linear-gradient(90deg,#1b2630,#11161d)}
+.panel-icon{color:var(--green);background:#49f0a10c;border-color:#49f0a138}
+.section-label .index{color:var(--green)}
+.file-chip input:checked+span{border-color:#49f0a1;background:#49f0a119;color:#78ffc0}
+.mode[aria-pressed=true]{color:#73ffc0;border-color:#49f0a17c;background:#49f0a10e}
+.mode[aria-pressed=true] .mode-dot{background:#49f0a1}
+html[data-theme=light] .panel-head{background:#f7faff}
+html[data-theme=light] .search-box{background:white;border-color:#dce2ea;box-shadow:0 4px 22px #20212418}
+html[data-theme=light] .eyebrow{color:#188454;background:#eaf8f0;border-color:#b6e4ca}
+html[data-theme=light] .version{color:#147e4b;background:#ecf8f1;border-color:#b5e0c6}
+@media(max-width:640px){.hero{padding-top:40px}h1{letter-spacing:-1.9px}.brand-detail{font-size:8px}.version{display:none}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="site-head">
+    <a href="#inicio" class="brand" aria-label="DorkLab, início">
+      <span class="brand-mark" aria-hidden="true"><span class="google-g">G</span></span>
+      <span><span class="brand-name">Dork<span>Lab</span></span><span class="brand-detail">SEARCH INTELLIGENCE · INDEPENDENTE</span></span>
+    </a>
+    <nav class="head-right" aria-label="Navegação">
+      <a class="small-link" href="#filtros">Ferramentas</a>
+      <a class="small-link" href="#operadores">Operadores</a>
+      <span class="version">● SYSTEM READY / v3.0</span>
+      <button type="button" id="themeToggle" class="theme-button" aria-label="Alternar tema claro e escuro" title="Alternar tema">☀</button>
+    </nav>
+  </header>
+  <main id="inicio">
+    <section class="hero" aria-labelledby="heroTitle">
+      <span class="eyebrow"><span class="live-dot" aria-hidden="true"></span> SEARCH INTELLIGENCE / ADVANCED OPERATORS</span>
+      <h1 id="heroTitle">Explore a web com <span class="h1-accent">precisão.</span></h1>
+      <p>Busca avançada com a simplicidade de um buscador e a precisão de um terminal de pesquisa.</p>
+      <form id="searchForm" autocomplete="off">
+        <div class="search-section">
+          <div class="search-box">
+            <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="10.9" cy="10.9" r="7.3"/><path d="m16.4 16.4 5 5"/></svg>
+            <input id="query" type="text" placeholder="O que você quer encontrar?" aria-label="Palavras-chave da pesquisa" spellcheck="false">
+            <kbd>Ctrl K</kbd>
+            <button class="go-btn" type="submit" aria-label="Pesquisar no Google">Pesquisar <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6"/></svg></button>
+          </div>
+          <div class="search-hint"><span>Pressione <span class="mini-green">Enter ↵</span> para pesquisar</span><span>Pesquisa gerada localmente · Sem API</span></div>
+        </div>
+        <div class="filter-quick" role="group" aria-label="Filtros rápidos por categoria">
+          <span class="quick-label">QUICK FILTERS</span>
+          <button type="button" class="mode" data-mode="all" aria-pressed="true"><span class="mode-dot"></span> Todos</button>
+          <button type="button" class="mode" data-mode="docs" aria-pressed="false">▤ Documentos</button>
+          <button type="button" class="mode" data-mode="data" aria-pressed="false">▥ Dados</button>
+          <button type="button" class="mode" data-mode="dev" aria-pressed="false">⌘ Dev</button>
+        </div>
+        <div class="layout">
+          <section class="panel" id="filtros" aria-labelledby="filterTitle">
+            <div class="panel-head">
+              <div class="panel-title"><span class="panel-icon" aria-hidden="true">⌘</span><div><h2 id="filterTitle">Refinar pesquisa</h2><p class="panel-description">Combine os filtros para montar sua busca.</p></div></div>
+              <span class="counter" id="filterCount">0 filtros</span>
+            </div>
+            <div class="panel-body">
+              <div class="section-label"><span class="index">01 /</span> Conteúdo</div>
+              <div class="field"><label for="exact">Frase exata</label><input id="exact" type="text" placeholder="Ex.: inteligência artificial" spellcheck="false"><span class="hint">O Google procura a frase inteira, entre aspas.</span></div>
+              <div class="two-cols">
+                <div class="field"><label for="oneOf">Uma destas palavras <span style="color:var(--green)">OR</span></label><input id="oneOf" type="text" placeholder="guia, tutorial, apostila" spellcheck="false"><span class="hint">Separe as alternativas por vírgulas.</span></div>
+                <div class="field"><label for="exclude">Excluir palavras <span style="color:var(--red)">−</span></label><input id="exclude" type="text" placeholder="venda, anúncio" spellcheck="false"><span class="hint">Separe por vírgulas.</span></div>
+              </div>
+              <div class="section-label"><span class="index">02 /</span> Formatos de arquivo</div>
+              <div class="field"><label class="field-label" id="formatsTitle">Selecionar extensões</label>
+                <div class="file-grid" id="fileTypes" role="group" aria-labelledby="formatsTitle">
+                  <label class="file-chip"><input type="checkbox" value="pdf"><span>.PDF</span></label>
+                  <label class="file-chip"><input type="checkbox" value="docx"><span>.DOCX</span></label>
+                  <label class="file-chip"><input type="checkbox" value="doc"><span>.DOC</span></label>
+                  <label class="file-chip"><input type="checkbox" value="xlsx"><span>.XLSX</span></label>
+                  <label class="file-chip"><input type="checkbox" value="xls"><span>.XLS</span></label>
+                  <label class="file-chip"><input type="checkbox" value="csv"><span>.CSV</span></label>
+                  <label class="file-chip"><input type="checkbox" value="pptx"><span>.PPTX</span></label>
+                  <label class="file-chip"><input type="checkbox" value="txt"><span>.TXT</span></label>
+                  <label class="file-chip"><input type="checkbox" value="json"><span>.JSON</span></label>
+                  <label class="file-chip"><input type="checkbox" value="xml"><span>.XML</span></label>
+                  <label class="file-chip"><input type="checkbox" value="rtf"><span>.RTF</span></label>
+                  <label class="file-chip"><input type="checkbox" value="bat"><span>.BAT</span></label>
+                  <label class="file-chip"><input type="checkbox" value="exe"><span>.EXE</span></label>
+                  <label class="file-chip"><input type="checkbox" value="mp4"><span>.MP4</span></label>
+                  <label class="file-chip"><input type="checkbox" value="jar"><span>.JAR</span></label>
+                </div>
+                <span class="hint">Selecione vários para pesquisar qualquer um deles. Sem seleção = todos. Alguns formatos, como EXE e BAT, podem não aparecer nos resultados por limitações de indexação do Google.</span>
+              </div>
+              <div class="section-label"><span class="index">03 /</span> Domínios e metadados</div>
+              <div class="two-cols">
+                <div class="field"><label for="site">Apenas neste site</label><input id="site" type="text" placeholder="gov.br" spellcheck="false"><span class="hint">site:dominio.com</span></div>
+                <div class="field"><label for="excludeSite">Excluir este site</label><input id="excludeSite" type="text" placeholder="pinterest.com" spellcheck="false"><span class="hint">-site:dominio.com</span></div>
+                <div class="field"><label for="titleWords">Palavra no título</label><input id="titleWords" type="text" placeholder="relatório" spellcheck="false"><span class="hint">intitle:relatório</span></div>
+                <div class="field"><label for="urlWords">Palavra na URL</label><input id="urlWords" type="text" placeholder="documentos" spellcheck="false"><span class="hint">inurl:documentos</span></div>
+              </div>
+              <div class="section-label"><span class="index">04 /</span> Período</div>
+              <div class="two-cols">
+                <div class="field"><label for="after">Publicado depois de</label><input id="after" type="date"><span class="hint">after:AAAA-MM-DD</span></div>
+                <div class="field"><label for="before">Publicado antes de</label><input id="before" type="date"><span class="hint">before:AAAA-MM-DD</span></div>
+              </div>
+              <div class="controls-footer"><button type="button" class="reset-btn" id="clearBtn">↺ Limpar tudo</button><button type="submit" class="small-primary">↗ Abrir no Google</button></div>
+            </div>
+          </section>
+          <aside class="sidebar" aria-label="Consulta e sugestões">
+            <section class="panel" aria-labelledby="liveTitle">
+              <div class="panel-head"><div><h2 id="liveTitle">Consulta em tempo real</h2><p class="panel-description">Visualize a sintaxe antes de pesquisar.</p></div><span class="counter">LIVE</span></div>
+              <div class="side-content">
+                <div class="terminal">
+                  <div class="terminal-head"><i class="window-circle"></i><i class="window-circle"></i><i class="window-circle"></i><span>query_builder.sh</span></div>
+                  <div class="terminal-main"><div class="term-prefix">dorklab@search:~$ <span style="color:var(--muted)">query --build</span></div><div id="preview" aria-live="polite"><span class="ghost">// Seus filtros vão aparecer aqui...</span></div></div>
+                  <div class="terminal-foot"><span id="charCount">0 caracteres</span><span class="indicator">● READY</span></div>
+                </div>
+                <div class="action-stack">
+                  <button class="action-btn" id="copyQuery" type="button" disabled><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"/></svg>Copiar dork</button>
+                  <button class="action-btn" id="copyLink" type="button" disabled><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.1 0l2.2-2.2a5 5 0 0 0-7.1-7.1L11 4.9"/><path d="M14 11a5 5 0 0 0-7.1 0l-2.2 2.2a5 5 0 0 0 7.1 7.1l1.2-1.2"/></svg>Copiar link</button>
+                </div>
+                <div class="status" role="status" aria-live="polite" id="status"></div>
+              </div>
+            </section>
+            <section class="panel" aria-labelledby="presetTitle">
+              <div class="side-content">
+                <div class="side-title" id="presetTitle">EXEMPLOS PARA COMEÇAR <span>PRESETS_04</span></div>
+                <button type="button" class="preset" data-preset="pdf"><span class="preset-icon">📑</span><span><strong>Manuais e tutoriais</strong><small>Guias e documentação em PDF</small></span></button>
+                <button type="button" class="preset" data-preset="data"><span class="preset-icon">📊</span><span><strong>Dados públicos</strong><small>Planilhas e CSV em sites gov.br</small></span></button>
+                <button type="button" class="preset" data-preset="slides"><span class="preset-icon">🖥</span><span><strong>Apresentações</strong><small>Slides sobre educação digital</small></span></button>
+                <button type="button" class="preset" data-preset="news"><span class="preset-icon">📰</span><span><strong>Pesquisa por período</strong><small>Conteúdo recente sobre energia renovável</small></span></button>
+                <div class="disclaimer"><b>Ferramenta independente.</b> Esta página não pertence ao Google e não acessa áreas privadas. Ela apenas constrói buscas e abre os resultados públicos do Google. Alguns operadores podem não produzir resultados exatos.</div>
+              </div>
+              <details class="guide" id="operadores"><summary>Guia de operadores <span style="font:10px Consolas,monospace;color:var(--muted)">CHEATSHEET</span></summary>
+                <div class="op-row"><code>site:</code><span>Limita o domínio</span></div>
+                <div class="op-row"><code>filetype:</code><span>Escolhe a extensão</span></div>
+                <div class="op-row"><code>"frase exata"</code><span>Pesquisa literal</span></div>
+                <div class="op-row"><code>intitle:</code><span>Termo no título</span></div>
+                <div class="op-row"><code>inurl:</code><span>Termo na URL</span></div>
+                <div class="op-row"><code>-palavra</code><span>Exclui um termo</span></div>
+                <div class="op-row"><code>OR</code><span>Uma alternativa ou outra</span></div>
+                <div class="op-row"><code>after:/before:</code><span>Delimita datas</span></div>
+              </details>
+            </section>
+          </aside>
+        </div>
+      </form>
+    </section>
+  </main>
+  <footer><span><span class="brand-colors" aria-hidden="true"><i></i><i></i><i></i><i></i></span> <b>DorkLab</b> · A Google-inspired search experience</span><span>Não afiliado ao Google · Desenvolvido para pesquisa de conteúdo público</span></footer>
+</div>
+<script>
+(()=>{
+  'use strict';
+  const $=id=>document.getElementById(id);
+  const ids=['query','exact','oneOf','exclude','site','excludeSite','titleWords','urlWords','after','before'];
+  const checkboxes=[...document.querySelectorAll('#fileTypes input[type=checkbox]')];
+  const modes=[...document.querySelectorAll('[data-mode]')];
+  const preview=$('preview'),status=$('status');
+  const trim=v=>v.trim().replace(/\s+/g,' ');
+  const split=v=>v.split(',').map(trim).filter(Boolean);
+  const lit=v=>v.replace(/["\r\n]/g,' ').trim();
+  const quote=v=>'"'+v.replace(/"/g,'').trim()+'"';
+  const opVal=v=>lit(v).includes(' ')?quote(lit(v)):lit(v);
+  const domain=v=>trim(v).replace(/^https?:\/\//i,'').replace(/^www\./i,'').split(/[/?#\s]/,1)[0].replace(/[^a-zA-Z0-9.*_:-]/g,'');
+  let activePresetMode='all';
+  function build(){
+    const q=[];
+    if(trim($('query').value))q.push(trim($('query').value));
+    if(trim($('exact').value))q.push(quote(trim($('exact').value)));
+    const any=split($('oneOf').value).map(opVal).filter(Boolean);
+    if(any.length)q.push(any.length===1?any[0]:'('+any.join(' OR ')+')');
+    split($('exclude').value).map(opVal).filter(Boolean).forEach(v=>q.push('-'+v));
+    if(domain($('site').value))q.push('site:'+domain($('site').value));
+    if(domain($('excludeSite').value))q.push('-site:'+domain($('excludeSite').value));
+    const types=checkboxes.filter(c=>c.checked).map(c=>'filetype:'+c.value);
+    if(types.length)q.push(types.length===1?types[0]:'('+types.join(' OR ')+')');
+    if(opVal($('titleWords').value))q.push('intitle:'+opVal($('titleWords').value));
+    if(opVal($('urlWords').value))q.push('inurl:'+opVal($('urlWords').value));
+    if($('after').value)q.push('after:'+$('after').value);
+    if($('before').value)q.push('before:'+$('before').value);
+    return q.join(' ');
+  }
+  const googleUrl=()=> 'https://www.google.com/search?q='+encodeURIComponent(build());
+  function countFilters(){
+    return ids.filter(id=>trim($(id).value)).length+checkboxes.filter(c=>c.checked).length;
+  }
+  function notify(message='',error=false){status.textContent=message;status.classList.toggle('error',error)}
+  function setMode(mode){activePresetMode=mode;modes.forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.mode===mode)))}
+  function setTypes(types){checkboxes.forEach(c=>c.checked=types.includes(c.value))}
+  function decorateQuery(q){
+    preview.replaceChildren();
+    if(!q){const span=document.createElement('span');span.className='ghost';span.textContent='// Seus filtros vão aparecer aqui...';preview.append(span);return;}
+    // The source is always inserted using textContent, never as HTML.
+    const chunks=q.match(/(?:"[^"]*"|\([^)]*\)|\S+)(?:\s+|$)/g)||[q];
+    for(const chunk of chunks){
+      if(chunk.startsWith('(')&&chunk.includes(' OR ')){
+        const parts=chunk.split(/(\bOR\b|\bfiletype:)/g);
+        parts.forEach(piece=>{const span=document.createElement('span');span.className=piece==='OR'?'or':piece==='filetype:'?'op':'';span.textContent=piece;preview.append(span)});
+      }else{
+        const match=chunk.match(/^(\-?(?:site|filetype|intitle|inurl|after|before):)/i);
+        const span=document.createElement('span');
+        span.className=match?'op':chunk.trim().startsWith('"')?'str':'';
+        if(match){span.textContent=match[1];preview.append(span);const rest=document.createElement('span');rest.textContent=chunk.slice(match[1].length);preview.append(rest)}
+        else{span.textContent=chunk;preview.append(span)}
+      }
+    }
+  }
+  function refresh(){
+    const q=build();decorateQuery(q);
+    $('charCount').textContent=q.length+' caracteres';
+    const cnt=countFilters();$('filterCount').textContent=cnt+' '+(cnt===1?'filtro':'filtros');
+    $('copyQuery').disabled=!q;$('copyLink').disabled=!q;
+    return q;
+  }
+  function validate(){
+    if(!build()){notify('Adicione um termo ou filtro antes de pesquisar.',true);return false;}
+    if($('after').value&&$('before').value&&$('after').value>=$('before').value){notify('A data inicial deve ser anterior à data final.',true);return false;}
+    return true;
+  }
+  function reset(){ids.forEach(id=>$(id).value='');setTypes([]);setMode('all');notify();refresh()}
+  function doSearch(e){if(e)e.preventDefault();if(!validate())return;const a=document.createElement('a');a.href=googleUrl();a.target='_blank';a.rel='noopener noreferrer';document.body.append(a);a.click();a.remove();notify('✓ Pesquisa aberta no Google em uma nova aba.');}
+  $('searchForm').addEventListener('submit',doSearch);
+  $('searchForm').addEventListener('input',()=>{notify();refresh()});
+  $('searchForm').addEventListener('change',()=>{notify();refresh()});
+  $('clearBtn').addEventListener('click',reset);
+  checkboxes.forEach(c=>c.addEventListener('change',()=>setMode('custom')));
+  const groups={all:[],docs:['pdf','docx','doc','pptx','rtf'],data:['xlsx','xls','csv','json'],dev:['txt','json','xml']};
+  modes.forEach(button=>button.addEventListener('click',()=>{setTypes(groups[button.dataset.mode]);setMode(button.dataset.mode);notify('Filtro rápido aplicado.');refresh()}));
+  document.querySelectorAll('[data-preset]').forEach(button=>button.addEventListener('click',()=>{
+    reset();switch(button.dataset.preset){
+      case 'pdf':$('query').value='manual programação';$('oneOf').value='guia, tutorial';setTypes(['pdf']);break;
+      case 'data':$('query').value='dados abertos';$('site').value='gov.br';setTypes(['csv','xlsx']);break;
+      case 'slides':$('query').value='educação digital';setTypes(['pptx']);break;
+      case 'news':$('exact').value='energia renovável';$('after').value='2025-01-01';break;
+    }
+    setMode('custom');refresh();notify('✓ Exemplo aplicado. Você pode editar os filtros.');
+    if(matchMedia('(max-width:900px)').matches){$('query').scrollIntoView({behavior:'smooth',block:'center'});}
+  }));
+  async function copyText(text){
+    try{
+      if(navigator.clipboard&&window.isSecureContext)await navigator.clipboard.writeText(text);
+      else{
+        const box=document.createElement('textarea');box.value=text;box.style.cssText='position:fixed;left:-9999px;top:-9999px';document.body.append(box);box.select();const ok=document.execCommand('copy');box.remove();if(!ok)throw Error('Sem suporte');
+      }
+      notify('✓ Copiado para a área de transferência.');
+    }catch(e){notify('Não foi possível copiar automaticamente neste navegador.',true)}
+  }
+  $('copyQuery').addEventListener('click',()=>{if(validate())copyText(build())});
+  $('copyLink').addEventListener('click',()=>{if(validate())copyText(googleUrl())});
+  document.addEventListener('keydown',e=>{
+    if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='k'){e.preventDefault();$('query').focus();$('query').select();}
+    if((e.ctrlKey||e.metaKey)&&e.key==='Enter'){e.preventDefault();doSearch();}
+  });
+  const root=document.documentElement;
+  try{if(localStorage.getItem('dorklab_theme')==='light')root.dataset.theme='light'}catch(e){}
+  function syncTheme(){$('themeToggle').textContent=root.dataset.theme==='dark'?'☀':'☾';$('themeToggle').title=root.dataset.theme==='dark'?'Ativar tema claro':'Ativar tema escuro'}
+  $('themeToggle').addEventListener('click',()=>{root.dataset.theme=root.dataset.theme==='dark'?'light':'dark';try{localStorage.setItem('dorklab_theme',root.dataset.theme)}catch(e){}syncTheme()});
+  syncTheme();refresh();
+})();
+</script>
+</body>
+</html>
